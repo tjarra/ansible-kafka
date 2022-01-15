@@ -1,0 +1,13 @@
+kafka_user: "kafka"
+kafka_group: "wheel"
+
+kafka_file_download: "kafka_2.13-2.6.0.tgz"
+kafka_version: "2.13-2.6.0"
+
+kafka_path_base: "/opt"
+kafka_path_data: "/var/lib/kafka"
+kafka_path_bin: "{{ kafka_path_base }}/kafka"
+kafka_path_log: "/var/log/kafka"
+kafka_path_etc: "{{ kafka_path_bin }}/config"
+kafka_path_systemd: "/etc/systemd/system"
+
