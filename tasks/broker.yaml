@@ -1,0 +1,56 @@
+- name: Create Kafka User
+  user:
+    name: "{{ kafka_user }}"
+    groups: "{{ kafka_group }}"
+
+- name: Create datadir e logdir
+  file:
+    path: "{{ item }}"
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_user }}"
+    mode: 0755
+    state: directory
+  with_items:
+    - "{{ kafka_path_data }}"
+    - "{{ kafka_path_log }}"
+
+- name: Check if kafka is installed and up to date
+  stat:
+    path: "{{ kafka_path_base }}/kafka_{{ kafka_version }}" 
+  register: stat_result
+
+- name: Downloading Kafka tar
+  unarchive:
+    src: "{{ kafka_file_download }}"
+    dest: "{{ kafka_path_base }}"
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_user }}"
+  when: not stat_result.stat.exists
+
+- name: Create simbolic link 
+  file:
+    src: "{{ kafka_path_base }}/kafka_{{ kafka_version }}"
+    dest: "{{ kafka_path_bin }}"
+    state: link
+
+- name: Coping config file
+  template:
+    src: "{{ item.orig }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.owner }}"
+    mode: '764'
+  with_items:
+    - orig: server.properties.j2
+      dest: "{{ kafka_path_etc }}/server.properties"
+      owner: "{{ kafka_user }}"
+    - orig: kafka.service.j2
+      dest: "{{ kafka_path_systemd }}/kafka.service"
+      owner: "root"
+
+- name: Enable service Kafka Broker and start
+  systemd:
+    name: kafka
+    enabled: yes
+    state: started
+    daemon_reload: yes
